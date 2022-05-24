@@ -8,7 +8,11 @@ int flag1 = 0; // Valor 1
 int flag2 = 0; // Valor 2
 int flag3 = 0; // Valor 4
 
-void read3SecondDelay(int RXPort);
+unsigned long primeiroSinal = 0;
+unsigned long segundoSinal = 0;
+
+void read3SecondDelay(int RXPort, unsigned long signalDelay);
+unsigned long sync(int RXPort);
 
 void setup() {
   Serial.begin(9600);
@@ -17,28 +21,52 @@ void setup() {
 }
 
 void loop() {
+//  delay(3000);
   
   while(!digitalRead(signalRx)) {
-    Serial.println("Esperando Primeiro Sinal");
+    Serial.println("Esperando Primeiro Sinal (RX)");
   }
-  
-  Serial.println("Sincronizado");
-  digitalWrite(ledDebug, HIGH);
-  delay(5000);
-  digitalWrite(ledDebug, LOW);
-  
-  while(true) {
-    read3SecondDelay(signalRx);
+
+  unsigned long sinalDelay = sync(signalRx);
+
+  for(int i = 0; i < 9; i++) {
+    read3SecondDelay(signalRx, sinalDelay);
     flag1 = 0;
     flag2 = 0;
     flag3 = 0;
   }
+  
+//  while(true) {
+//    read3SecondDelay(signalRx, sinalDelay);
+//    flag1 = 0;
+//    flag2 = 0;
+//    flag3 = 0;
+//  }
+  
+  Serial.println("\nFinalizado Transmissão");
+  while(true);
+//  delay(3000);
 }
 
-void read3SecondDelay(int RXPort) {
+unsigned long sync(int RXPort) {
+  Serial.println("Sincronizando");
+  while(digitalRead(RXPort));
+  primeiroSinal = millis();
+  while(!digitalRead(RXPort));
+  segundoSinal = millis();
+  Serial.print("Delay:");
+  Serial.println(segundoSinal - primeiroSinal); // Depois subtrair também o 1 segundo de delay entre os HIGHs
+  delay(100);
+  return 1000 -(segundoSinal - primeiroSinal);
+  // Delay para verificar se eu não fiz cagada
+//  delay(2100);
+}
+
+void read3SecondDelay(int RXPort, unsigned long signalDelay) {
+  delay(500 + signalDelay);
   // Leitura primeiro flag
   if (digitalRead(RXPort)) {
-    Serial.println("FLAG 1");  //DEBUG
+//    Serial.println("FLAG 1");  //DEBUG
     flag1 = 1;
     digitalWrite(ledDebug, HIGH);
   }
@@ -47,7 +75,7 @@ void read3SecondDelay(int RXPort) {
 
   // Leitura segundo flag
   if (digitalRead(RXPort)) {
-    Serial.println("FLAG 2"); //DEBUG
+//    Serial.println("FLAG 2"); //DEBUG
     flag2 = 2;
     digitalWrite(ledDebug, HIGH);
   }
@@ -56,12 +84,12 @@ void read3SecondDelay(int RXPort) {
 
   // Leitura terceiro flag
   if (digitalRead(RXPort)) {
-    Serial.println("FLAG 3"); //DEBUG
+//    Serial.println("FLAG 3"); //DEBUG
     flag3 = 4;
     digitalWrite(ledDebug, HIGH);
   }
-  delay(1000);
+  delay(500 - signalDelay);
   digitalWrite(ledDebug, LOW);
   
-  Serial.println(charArray[flag1 + flag2 + flag3]);
+  Serial.print(charArray[flag1 + flag2 + flag3]);
 }

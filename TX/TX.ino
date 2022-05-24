@@ -1,6 +1,5 @@
 const int signalTx = 13;
-
-// COMENTA O CÓDIGO QUE NÃO VAI USAR, TAIS CODIGANDO COM SONO O DESGRAÇA
+const int botao = 8;
 
 // Protocolo OLAMUND_
 const int charO[4] = {0, 0, 0};
@@ -18,52 +17,63 @@ const int charEspaco[4] = {1, 1, 1};
 //const int charA = 3;
 
 void ledDelay(int TXPort, int letra[]);
+void sync(int TXPort);
 
 void setup() {
   pinMode(signalTx, OUTPUT);
+  pinMode(botao, INPUT);
   Serial.begin(9600);
 }
 
 void loop() {
-  delay(1000);
-
-  // Sincronizar via botão estava dando erro por mal contato
-//  while(!digitalRead(botaoSync)) {
-//    Serial.println("Esperando Primeiro Sinal");
-//  }
-
-  // Será feito sincronização via Serial mesmo
-  Serial.println("Aperte um botão para iniciar a sincronização");
-  while(Serial.available() == 0);
-
-  Serial.println("Sincronizando");
-  digitalWrite(signalTx, HIGH);
-  delay(5000);
-  digitalWrite(signalTx, LOW);
+  delay(3000);
   
-  // Escrita das letras
-  while(true) {
-    Serial.println("Enviando O");
-    ledDelay(signalTx, charO);
-    Serial.println("Enviando L");
-    ledDelay(signalTx, charL);
-    Serial.println("Enviando A");
-    ledDelay(signalTx, charA);
-    Serial.println("Enviando _");
-    ledDelay(signalTx, charEspaco);
-    Serial.println("Enviando M");
-    ledDelay(signalTx, charM);
-    Serial.println("Enviando U");
-    ledDelay(signalTx, charU);
-    Serial.println("Enviando N");
-    ledDelay(signalTx, charN);
-    Serial.println("Enviando D");
-    ledDelay(signalTx, charD);
-    Serial.println("Enviando O");
-    ledDelay(signalTx, charO);
-    Serial.println("Enviando _");
-    ledDelay(signalTx, charEspaco);
+  // Sincronizar via botão estava dando erro por mal contato do GND
+  while(!digitalRead(botao)) {
+    Serial.println("Esperando Primeiro Sinal (TX)");
   }
+
+//  Serial.println("Aperte um botão para iniciar a sincronização");
+//  while(Serial.available() == 0);
+
+  sync(signalTx);
+
+  // Escrita das letras
+  Serial.println("Enviando O");
+  ledDelay(signalTx, charO);
+  Serial.println("Enviando L");
+  ledDelay(signalTx, charL);
+  Serial.println("Enviando A");
+  ledDelay(signalTx, charA);
+  Serial.println("Enviando _");
+  ledDelay(signalTx, charEspaco);
+  Serial.println("Enviando M");
+  ledDelay(signalTx, charM);
+  Serial.println("Enviando U");
+  ledDelay(signalTx, charU);
+  Serial.println("Enviando N");
+  ledDelay(signalTx, charN);
+  Serial.println("Enviando D");
+  ledDelay(signalTx, charD);
+  Serial.println("Enviando O");
+  ledDelay(signalTx, charO);
+//  Serial.println("Enviando _");
+//  ledDelay(signalTx, charEspaco);
+  
+  Serial.println("Finalizado Transmissão");
+  while(true); // Loop infinito para terminar programa
+//  delay(3000);
+}
+
+void sync(int TXPort) {
+  Serial.println("Sincronizando");
+  digitalWrite(TXPort, HIGH);
+  delay(1000);
+  digitalWrite(TXPort, LOW);
+  delay(1000);
+  digitalWrite(TXPort, HIGH);
+  delay(100);
+  digitalWrite(TXPort, LOW);
 }
 
 // Criar função para as letras e o seu tempo para deixar ligado o led
